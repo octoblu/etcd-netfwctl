@@ -1,0 +1,35 @@
+#!/bin/bash
+
+OPTS=`getopt --options h:p:e: --longoptions host:,port:,etcd-key:,help --name 'etcd-netfwctl' -- "$@"`
+eval set -- "$OPTS"
+
+while true; do
+  case "$1" in
+    --help ) PRINT_HELP="Please help"; shift 1 ;;
+    -h | --host ) BACKEND_HOST=$2; shift 2 ;;
+    -p | --port ) BACKEND_PORT=$2; shift 2 ;;
+    -e | --etcd-key ) ETCD_KEY=$2; shift 2 ;;
+    -- ) shift; break ;;
+    * ) break ;;
+  esac
+done
+
+if [ -n "$PRINT_HELP" -o -z "$BACKEND_HOST" -o -z "$BACKEND_PORT" -o -z "$ETCD_KEY" ]; then
+  echo "Usage: etcd-netfwctl [OPTIONS]"
+  echo ""
+  echo "OPTIONS: (all but --help are required)"
+  echo ""
+  echo "    -h --host      Set the backend host"
+  echo "    -p --port      Set the backend port"
+  echo "    -e --etcd-key  Set the etcd key"
+  echo ""
+  echo "    --help         print this help"
+  echo ""
+  exit 1
+fi
+
+read -r -d '' JSON <<EOF
+  {"host": "$BACKEND_HOST", "port": $BACKEND_PORT}
+EOF
+
+etcdctl set $ETCD_KEY "$JSON"
